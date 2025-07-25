@@ -1,0 +1,29 @@
+#!/bin/bash
+# Rename to test
+
+export model=s
+CUDA_VISIBLE_DEVICES=1 torchrun --master_port=7777 --nproc_per_node=1 train.py -c configs/dfine/objects365/dfine_hgnetv2_${model}_obj2coco.yml --test-only -r dfine_s_obj2coco.pth 
+
+Dataset: ../localDatasets/COCO_Dataset_Detection_24Frame_Tiles-imgsize_1920-tilesize_728-classes_90-bgsample_2.0-min_box_size_6
+
+
+Metrics: {'f1': 0.2841933532634615, 'precision': 0.24177746329732752, 'recall': 0.3446579342742874, 'iou': 0.12649892973328578, 'TPs': 97725, 'FPs': 306469, 'FNs': 185817}
+Averaged stats:
+Accumulating evaluation results...
+COCOeval_opt.accumulate() finished...
+DONE (t=591.94s).
+IoU metric: bbox
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.178
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.276
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.193
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.429
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.466
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.114
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.361
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.605
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.668
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.580
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.782
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.878
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.934
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.743

@@ -100,9 +100,9 @@ class Model:
             if checkpoint_num_classes != args.num_classes + 1:
                 logger.warning(
                     f"num_classes mismatch: pretrain weights has {checkpoint_num_classes - 1} classes, but your model has {args.num_classes} classes\n"
-                    f"reinitializing detection head with {checkpoint_num_classes - 1} classes"
+                    f"reinitializing detection head with {checkpoint_num_classes} classes"
                 )
-                self.reinitialize_detection_head(checkpoint_num_classes)
+                self.reinitialize_detection_head( checkpoint_num_classes)
             # add support to exclude_keys
             # e.g., when load object365 pretrain, do not load `class_embed.[weight, bias]`
             if args.pretrain_exclude_keys is not None:
@@ -130,6 +130,12 @@ class Model:
                     checkpoint['model'][name] = state[:num_desired_queries]
 
             self.model.load_state_dict(checkpoint['model'], strict=False)
+            
+            if checkpoint_num_classes != args.num_classes + 1:
+                logger.warning(
+                    f"After loading pretrain weights with {checkpoint_num_classes - 1} classes, restoring head layer with {args.num_classes} classes\n"
+                )
+                self.reinitialize_detection_head( args.num_classes + 1)
 
         if args.backbone_lora:
             print("Applying LORA to backbone")
@@ -305,7 +311,10 @@ class Model:
             test_stats, coco_evaluator = evaluate(
                 model, criterion, postprocessors, data_loader_val, base_ds, device, args)
             if args.output_dir:
+                output_dir.mkdir(parents=True, exist_ok=True)
                 utils.save_on_master(coco_evaluator.coco_eval["bbox"].eval, output_dir / "eval.pth")
+                with open(output_dir / "results.json", "w") as f:
+                    json.dump(test_stats["results_json"], f)
             return
         
         # for drop
@@ -528,7 +537,7 @@ class Model:
         dynamic_axes = {
             'input': {0: 'batch_size', 2: 'height', 3: 'width'},
         }
-        if backbone_only:
+        if not backbone_only:
             dynamic_axes.update({
                 'dets': {0: 'batch_size'},
                 'labels': {0: 'batch_size'},

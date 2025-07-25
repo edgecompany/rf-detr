@@ -1,9 +1,16 @@
 *.onnx
 *.pth
-tec_scripts/tests/images/*
-tec_scripts/tests/out/*
-tec_scripts/tests/navigator_workspace/*
- 
+tec_scripts/*.jpg
+tec_scripts/*.png
+tec_scripts/tests/*.jpg
+tec_scripts/tests/*.png
+tec_scripts/tests/images/
+tec_scripts/tests/out/
+tec_scripts/tests/navigator_workspace/
+tec_scripts/navigator_workspace/
+tec_scripts/logs
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
