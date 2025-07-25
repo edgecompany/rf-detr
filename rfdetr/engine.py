@@ -20,11 +20,14 @@ Train and eval functions used in main.py
 import math
 import sys
 from typing import Iterable
+import random
 
 import torch
+import torch.nn.functional as F
 
 import rfdetr.util.misc as utils
 from rfdetr.datasets.coco_eval import CocoEvaluator
+from rfdetr.datasets.coco import compute_multi_scale_scales
 
 try:
     from torch.amp import autocast, GradScaler
@@ -105,6 +108,14 @@ def train_one_epoch(
                 model.module.update_dropout(schedules["do"][it])
             else:
                 model.update_dropout(schedules["do"][it])
+
+        if args.multi_scale and not args.do_random_resize_via_padding:
+            scales = compute_multi_scale_scales(args.resolution, args.expanded_scales, args.patch_size, args.num_windows)
+            random.seed(it)
+            scale = random.choice(scales)
+            with torch.inference_mode():
+                samples.tensors = F.interpolate(samples.tensors, size=scale, mode='bilinear', align_corners=False)
+                samples.mask = F.interpolate(samples.mask.unsqueeze(1).float(), size=scale, mode='nearest').squeeze(1).bool()
 
         for i in range(args.grad_accum_steps):
             start_idx = i * sub_batch_size
@@ -320,7 +331,6 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, arg
     stats = {k: meter.global_avg for k, meter in metric_logger.meters.items()}
     if coco_evaluator is not None:
         results_json = coco_extended_metrics(coco_evaluator.coco_eval["bbox"])
-        print("Results JSON:", results_json)
         stats["results_json"] = results_json
         if "bbox" in postprocessors.keys():
             stats["coco_eval_bbox"] = coco_evaluator.coco_eval["bbox"].stats.tolist()
